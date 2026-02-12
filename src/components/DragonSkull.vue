@@ -26,8 +26,6 @@ function init() {
 
   // Scene
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x0a1a0a)
-  scene.fog = new THREE.FogExp2(0x0a1a0a, 0.002)
 
   // Camera
   camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
@@ -48,17 +46,18 @@ function init() {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
   controls.enablePan = false
+  controls.enableZoom = false // Disabled zoom on scroll
   controls.minDistance = 50
   controls.maxDistance = 800
   controls.autoRotate = true
-  controls.autoRotateSpeed = 1.5
+  controls.autoRotateSpeed = 0.5 // Slower auto-rotate
   controls.target.set(0, 50, 0)
 
-  // Lights
-  const ambientLight = new THREE.AmbientLight(0x404060, 0.5)
+  // Lights — matched to LightPillar purple/blue palette
+  const ambientLight = new THREE.AmbientLight(0x1a1040, 0.6)
   scene.add(ambientLight)
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5)
+  const dirLight = new THREE.DirectionalLight(0xccccff, 1.5)
   dirLight.position.set(200, 300, 200)
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
@@ -71,15 +70,15 @@ function init() {
   dirLight.shadow.camera.bottom = -500
   scene.add(dirLight)
 
-  const fillLight = new THREE.DirectionalLight(0x6688cc, 0.7)
+  const fillLight = new THREE.DirectionalLight(0x5227ff, 0.7)
   fillLight.position.set(-200, 100, -200)
   scene.add(fillLight)
 
-  const rimLight = new THREE.DirectionalLight(0xff4444, 0.4)
+  const rimLight = new THREE.DirectionalLight(0xff9ffc, 0.5)
   rimLight.position.set(0, -100, -300)
   scene.add(rimLight)
 
-  const pointLight = new THREE.PointLight(0xff6633, 0.8, 500)
+  const pointLight = new THREE.PointLight(0x7744ff, 0.8, 500)
   pointLight.position.set(0, 80, 100)
   scene.add(pointLight)
 
@@ -91,7 +90,11 @@ function init() {
 
   // Handle resize
   window.addEventListener('resize', onResize)
+  
+  // Handle scroll for rotation
+  window.addEventListener('scroll', onScroll)
 }
+
 
 function loadModel() {
   const loader = new FBXLoader()
@@ -178,6 +181,23 @@ function loadModel() {
       loading.value = false
     }
   )
+}
+
+// Handle scroll based rotation
+function onScroll() {
+  if (!scene) return
+
+  // Calculate rotation based on scroll percentage
+  const scrollY = window.scrollY
+  const maxScroll = document.body.scrollHeight - window.innerHeight
+  // Guard against divide by zero if page is not scrollable
+  const scrollPercent = maxScroll > 0 ? scrollY / maxScroll : 0
+
+  // Rotate the entire scene or specific object group
+  // Completes 2 full rotations over the page length
+  const targetRotation = scrollPercent * Math.PI * 4 
+
+  scene.rotation.y = targetRotation
 }
 
 function onResize() {
