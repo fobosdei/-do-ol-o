@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as THREE from 'three'
 
 interface Props {
@@ -338,6 +338,13 @@ const cleanup = () => {
 onMounted(() => {
   checkWebGL()
   initScene()
+})
+
+watch(() => [props.topColor, props.bottomColor], ([newTop, newBottom]) => {
+  if (material && newTop && newBottom) {
+    if (material.uniforms.uTopColor) material.uniforms.uTopColor.value = parseColor(newTop)
+    if (material.uniforms.uBottomColor) material.uniforms.uBottomColor.value = parseColor(newBottom)
+  }
 })
 
 onBeforeUnmount(() => {

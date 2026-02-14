@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useUIState } from './utils/useUIState'
+
 defineProps<{ msg?: string }>()
+
+const { isAboutOpen } = useUIState()
 </script>
 
 <template>
-  <div class="landing">
+  <div class="landing" :class="{ 'is-hidden': isAboutOpen }">
     <section class="hero">
       <h1 class="hero-title">kafkha</h1>
       <p class="hero-subtitle">entusiasta y progresista</p>
@@ -79,6 +83,14 @@ defineProps<{ msg?: string }>()
   position: relative;
   z-index: 1;
   pointer-events: none;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.landing.is-hidden {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .hero {

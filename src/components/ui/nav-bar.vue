@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+
 import LiquidGlass from '../interfaces/liquidglass.vue'
+import { useUIState } from '../utils/useUIState'
+
+const { toggleAbout } = useUIState()
 
 const navItems = [
   { label: 'Inicio', href: '#' },
@@ -47,7 +51,11 @@ onBeforeUnmount(() => {
           :href="item.href"
           class="nav-link"
           :class="{ active: activeIndex === index }"
-          @click.prevent="activeIndex = index"
+
+          @click.prevent="() => {
+            activeIndex = index
+            if (item.label === 'Sobre mí') toggleAbout()
+          }"
         >
           {{ item.label }}
           <span v-if="activeIndex === index" class="active-indicator">/</span>

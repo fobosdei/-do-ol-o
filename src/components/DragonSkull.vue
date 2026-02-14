@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { useCursorTracking } from './utils/useCursorTracking'
+import { useTheme } from './utils/useTheme'
+import { useUIState } from './utils/useUIState'
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const loading = ref(true)
@@ -16,6 +19,17 @@ let controls: OrbitControls
 let mixer: THREE.AnimationMixer | null = null
 let clock: THREE.Clock
 let animationFrameId: number
+let model: THREE.Object3D | null = null
+
+// Light references for theme synchronization
+let ambientLight: THREE.AmbientLight
+let fillLight: THREE.DirectionalLight
+let rimLight: THREE.DirectionalLight
+let pointLight: THREE.PointLight
+
+const { themeColors } = useTheme()
+
+const { x: cursorX, y: cursorY, width: windowWidth, height: windowHeight } = useCursorTracking()
 
 function init() {
   if (!containerRef.value) return
@@ -53,8 +67,8 @@ function init() {
   controls.autoRotateSpeed = 0.5 // Slower auto-rotate
   controls.target.set(0, 50, 0)
 
-  // Lights — matched to LightPillar purple/blue palette
-  const ambientLight = new THREE.AmbientLight(0x1a1040, 0.6)
+  // Lights — synced with theme
+  ambientLight = new THREE.AmbientLight(themeColors.value.top, 0.6)
   scene.add(ambientLight)
 
   const dirLight = new THREE.DirectionalLight(0xccccff, 1.5)
@@ -70,15 +84,15 @@ function init() {
   dirLight.shadow.camera.bottom = -500
   scene.add(dirLight)
 
-  const fillLight = new THREE.DirectionalLight(0x5227ff, 0.7)
+  fillLight = new THREE.DirectionalLight(themeColors.value.top, 0.7)
   fillLight.position.set(-200, 100, -200)
   scene.add(fillLight)
 
-  const rimLight = new THREE.DirectionalLight(0xff9ffc, 0.5)
+  rimLight = new THREE.DirectionalLight(themeColors.value.bottom, 0.5)
   rimLight.position.set(0, -100, -300)
   scene.add(rimLight)
 
-  const pointLight = new THREE.PointLight(0x7744ff, 0.8, 500)
+  pointLight = new THREE.PointLight(themeColors.value.top, 0.8, 500)
   pointLight.position.set(0, 80, 100)
   scene.add(pointLight)
 
@@ -95,9 +109,19 @@ function init() {
   window.addEventListener('scroll', onScroll)
 }
 
+const { isAboutOpen } = useUIState()
+
+watch(isAboutOpen, (open) => {
+  if (open) {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId)
+  } else {
+    animate()
+  }
+})
 
 function loadModel() {
   const loader = new FBXLoader()
+// ... (rest of the file remains the same, I will use a smaller chunk to be safe)
 
   // Load textures
   const textureLoader = new THREE.TextureLoader()
@@ -150,7 +174,8 @@ function loadModel() {
       object.scale.setScalar(scale)
       object.position.sub(center.multiplyScalar(scale))
       object.position.y += 60
-
+      
+      model = object
       scene.add(object)
 
       // Setup animations if available
@@ -217,6 +242,22 @@ function animate() {
     mixer.update(delta)
   }
 
+  if (model) {
+    const ndcX = (cursorX.value / windowWidth.value) * 2 - 1
+    const ndcY = -(cursorY.value / windowHeight.value) * 2 + 1
+
+    // Target rotation based on cursor position
+    const targetX = -ndcY * 0.5 
+    const targetY = ndcX * 0.5 
+
+    // Smoothly interpolate current rotation to target
+    // Note: We're adding to the base rotation if needed, but since model.rotation is local
+    // and distinct from scene/controls, this works as a "look at" offset.
+    const ease = 0.1
+    model.rotation.x += (targetX - model.rotation.x) * ease
+    model.rotation.y += (targetY - model.rotation.y) * ease
+  }
+
   controls.update()
   renderer.render(scene, camera)
 }
@@ -225,6 +266,14 @@ onMounted(() => {
   init()
   animate()
 })
+
+// Watch for theme changes and update lights
+watch(themeColors, (newColors) => {
+  if (ambientLight) ambientLight.color.set(newColors.top)
+  if (fillLight) fillLight.color.set(newColors.top)
+  if (pointLight) pointLight.color.set(newColors.top)
+  if (rimLight) rimLight.color.set(newColors.bottom)
+}, { deep: true })
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationFrameId)
