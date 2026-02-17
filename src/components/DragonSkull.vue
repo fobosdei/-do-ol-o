@@ -331,7 +331,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(44, 46, 26, 0.95);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
   z-index: 10;
 }
 
@@ -372,7 +373,7 @@ onBeforeUnmount(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #646cff, #42b883);
+  background: linear-gradient(90deg, #646cff, #a855f7);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -388,7 +389,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(27, 46, 26, 0.95);
+  background: rgba(20, 0, 40, 0.95);
   color: #ff4444;
   font-size: 1.2rem;
   z-index: 10;

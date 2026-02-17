@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LiquidGlass from '../interfaces/liquidglass.vue'
+
 
 defineProps<{
   show: boolean
@@ -8,18 +8,7 @@ defineProps<{
 
 <template>
   <div class="aboutme-child-container" :class="{ 'is-visible': show }">
-    <LiquidGlass
-      :width="'100%'"
-      :height="'100%'"
-      :border-radius="20"
-      :border-width="0.2"
-      :opacity="0.1"
-      :blur="8"
-      :displace="0.3"
-      :distortion-scale="15"
-      mix-blend-mode="normal"
-      class="child-glass"
-    >
+    <div class="glass-card child-glass">
       <div class="child-content">
         <h3>Experiencia & Habilidades</h3>
         <p>
@@ -42,7 +31,7 @@ defineProps<{
           </div>
         </div>
       </div>
-    </LiquidGlass>
+    </div>
   </div>
 </template>
 
@@ -51,34 +40,62 @@ defineProps<{
   position: fixed;
   top: 50%;
   left: calc(50% + 180px); /* Shifted right to avoid parent overlap */
-  transform: translate(-50%, -50%) scale(0.9);
+  transform: translate(-50%, -50%); /* Removed scale(0.9) to fix size */
   width: 800px;
   max-width: calc(100vw - 1rem); /* Margin on both sides */
   height: 450px;
   max-height: calc(100vh - 2rem); /* Margin top and bottom */
   z-index: 190;
-  opacity: 0;
+  z-index: 190;
+  /* Remove opacity: 0 here to let the child manage visibility via height, or keep it but make it fast */
+  opacity: 1; 
+  visibility: hidden; /* Use visibility to hide interactions when closed */
   pointer-events: none;
-  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: visibility 0s linear 1s; /* Delay hiding so height animation can finish */
 }
 
 .aboutme-child-container.is-visible {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  visibility: visible;
   pointer-events: auto;
+  transition-delay: 0s; /* Appear immediately */
+  transform: translate(-50%, -50%); /* Ensure centering is maintained */
 }
 
 .child-glass {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: rgba(10, 10, 20, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  height: 100%;
+  /* Animation: Fill from bottom */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%; /* Start empty */
+  overflow: hidden;
+  transition: height 1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.aboutme-child-container.is-visible .child-glass {
+  height: 100%;
 }
 
 .child-content {
-  padding: 2.5rem;
+  padding: 1.0rem;
   color: #fff;
-  height: 100%;
+  /* Content pinned to bottom with full height to maintain layout during reveal */
+  position: relative;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Restore full height */
   display: flex;
   flex-direction: column;
   justify-content: center;
+  
 }
 
 h3 {
