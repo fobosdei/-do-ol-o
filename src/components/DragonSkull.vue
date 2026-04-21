@@ -144,7 +144,7 @@ function loadModel() {
   metalnessMap.colorSpace = THREE.LinearSRGBColorSpace
 
   loader.load(
-    '/dragon-skull-2/source/Dragon Skull 2.fbx',
+    '/dragon-skull-2/source/dragon-skull-2.fbx',
     (object) => {
       // Apply PBR materials
       object.traverse((child) => {
