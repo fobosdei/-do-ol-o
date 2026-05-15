@@ -5,7 +5,9 @@ import NavBar from './components/ui/nav-bar.vue'
 import ThemeToggle from './components/ui/ThemeToggle.vue'
 import Sidebar from './components/ui/sidebar.vue'
 import AboutmeCard from './components/AboutmeCard.vue'
+import ContactCard from './components/ContactCard.vue'
 import HelloWorld from './components/HelloWorld.vue'
+import ProjectsSection from './components/ProjectsSection.vue'
 import PageLayout from './layouts/PageLayout.vue'
 import { useTheme } from './components/utils/useTheme'
 import { useSmoothScroll } from './core/useSmoothScroll'
@@ -44,6 +46,8 @@ const toggleTheme = () => {
     <ThemeToggle :theme="theme" @toggle="toggleTheme" />
     <Sidebar />
     <AboutmeCard />
+    <ContactCard />
+    <ProjectsSection />
 
     <!-- 3D Background -->
     <DragonSkull />

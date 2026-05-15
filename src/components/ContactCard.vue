@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useUIState } from './utils/useUIState'
 
-defineProps<{ show: boolean }>()
+const { isContactOpen, closeContact } = useUIState()
 
-// --- Tilt ---
+// --- Tilted Card Logic ---
 const cardRef = ref<HTMLElement | null>(null)
 const rotateX = ref(0)
 const rotateY = ref(0)
 const scale = ref(1)
-const rotateAmplitude = 7
-const scaleOnHover = 1.015
+const rotateAmplitude = 10
+const scaleOnHover = 1.02
 
 function handleMouseTilt(e: MouseEvent) {
   if (!cardRef.value) return
@@ -90,11 +91,9 @@ const initPixels = () => {
   if (!ctx) return
   canvasRef.value.width = w; canvasRef.value.height = h
   canvasRef.value.style.width = `${w}px`; canvasRef.value.style.height = `${h}px`
-
   const colorsArr = colors.split(',')
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const pxs: Pixel[] = []
-
   for (let x = 0; x < w; x += gap) {
     for (let y = 0; y < h; y += gap) {
       const color = colorsArr[Math.floor(Math.random() * colorsArr.length)] || '#22c55e'
@@ -116,8 +115,7 @@ const doAnimate = (fnName: 'appear' | 'disappear') => {
   if (!ctx || !canvasRef.value) return
   ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
   let allIdle = true
-  const pixels = pixelsRef.value
-  for (const px of pixels) {
+  for (const px of pixelsRef.value) {
     fnName === 'appear' ? px.appear() : px.disappear()
     if (!px.isIdle) allIdle = false
   }
@@ -149,136 +147,118 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   if (animationRef.value !== null) cancelAnimationFrame(animationRef.value)
 })
+
+const socials = [
+  {
+    label: 'GitHub',
+    href: 'https://github.com/fobosdei',
+    svg: `<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>`
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/juan-manuel-fernandez-idrobo-11158736a',
+    svg: `<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle>`
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/juan_manuelfer?igsh=MWh1ZXpqc3FvdGgwdw==',
+    svg: `<rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>`
+  }
+]
 </script>
 
 <template>
-  <div class="child-container" :class="{ 'is-visible': show }">
+  <div class="contact-container" :class="{ 'is-open': isContactOpen }">
     <div
       ref="cardRef"
-      class="child-glass"
+      class="contact-glass glass-card"
       @mousemove="handleMouseTilt"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
       :style="{ transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})` }"
     >
-      <!-- Pixel Canvas -->
       <canvas ref="canvasRef" class="pixel-canvas"></canvas>
-      <div class="pixel-overlay"></div>
+      <div class="pixel-card-overlay"></div>
 
-      <div class="child-content">
-        <div class="content-header">
-          <h3>Experiencia &amp; Habilidades</h3>
-          <p>
-            Freelancer con 2 años construyendo productos digitales reales — desde apps publicadas en App Store y Google Play
-            hasta sistemas POS en producción. Full stack con frontend moderno, backend sólido y visión artificial aplicada.
-            Integro IA directamente al flujo de desarrollo: auditoría de código, automatización de procesos y agentes inteligentes.
-          </p>
+      <div class="contact-content">
+        <button class="close-btn" @click.stop="closeContact">×</button>
+
+        <div class="mail-icon">
+          <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
         </div>
 
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-number">2+</span>
-            <span class="stat-label">Años Freelance</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">20+</span>
-            <span class="stat-label">Proyectos</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">App</span>
-            <span class="stat-label">Store + Play</span>
-          </div>
+        <h2>Contáctame</h2>
+        <p class="subtitle">¿Tienes un proyecto en mente? Hablemos.</p>
+
+        <a href="mailto:manuelydrobo2004@gmail.com" class="email-btn">
+          manuelydrobo2004@gmail.com
+        </a>
+
+        <div class="divider"></div>
+
+        <div class="social-links">
+          <a
+            v-for="s in socials"
+            :key="s.label"
+            :href="s.href"
+            class="social-link"
+            :title="s.label"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" v-html="s.svg"></svg>
+          </a>
         </div>
 
-        <div class="categories">
-          <div class="cat-item">
-            <div class="cat-icon">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-            </div>
-            <div class="cat-text">
-              <span class="cat-title">Arquitecto full stack</span>
-              <span class="cat-stack">Vue 3 · React Native · Node.js · Supabase · Electron · Railway · Vercel</span>
-            </div>
-          </div>
-          <div class="cat-item">
-            <div class="cat-icon">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </div>
-            <div class="cat-text">
-              <span class="cat-title">Visión artificial</span>
-              <span class="cat-stack">YOLO v9-v11 · ByteTrack · CNN en tiempo real · OpenCV</span>
-            </div>
-          </div>
-          <div class="cat-item">
-            <div class="cat-icon">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="6"></rect><path d="M15 9V7a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2M15 15v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2M9 15H7a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h2M15 9h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"></path></svg>
-            </div>
-            <div class="cat-text">
-              <span class="cat-title">IA integrada al desarrollo</span>
-              <span class="cat-stack">Agentes con Claude · n8n · automatización · auditoría de código generado</span>
-            </div>
-          </div>
-          <div class="cat-item">
-            <div class="cat-icon">
-              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </div>
-            <div class="cat-text">
-              <span class="cat-title">QA y seguridad</span>
-              <span class="cat-stack">Playwright · Postman · DAST · ISO 27001 · MinTIC MGGTI</span>
-            </div>
-          </div>
-        </div>
+        <p class="availability">
+          <span class="dot"></span>
+          Disponible para proyectos freelance
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.child-container {
+.contact-container {
   position: fixed;
   top: 50%;
-  left: calc(50% + 180px);
-  transform: translate(-50%, -50%);
-  width: 800px;
-  max-width: calc(100vw - 1rem);
-  height: 540px;
-  max-height: calc(100vh - 2rem);
-  z-index: 190;
-  visibility: hidden;
-  pointer-events: none;
-  transition: visibility 0s linear 1s;
-  perspective: 1200px;
+  right: 3rem;
+  transform: translateY(-50%) translateX(120%);
+  width: 360px;
+  max-width: calc(100vw - 6rem);
+  height: auto;
+  z-index: 200;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  perspective: 1000px;
 }
 
-.child-container.is-visible {
-  visibility: visible;
-  pointer-events: auto;
-  transition-delay: 0s;
+.contact-container.is-open {
+  transform: translateY(-50%) translateX(0);
+  opacity: 1;
 }
 
-.child-glass {
+.contact-glass {
   background: rgba(10, 10, 20, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  border-radius: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
-  height: 0%;
+  height: auto;
   overflow: hidden;
-  transition: height 1s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s ease-out;
   transform-style: preserve-3d;
   will-change: transform;
+  transition: transform 0.1s ease-out;
+  position: relative;
 }
 
-.child-container.is-visible .child-glass {
-  height: 100%;
-}
-
-/* Pixel Canvas */
 .pixel-canvas {
   position: absolute;
   top: 0; left: 0;
@@ -287,7 +267,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.pixel-overlay {
+.pixel-card-overlay {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle, #09090b 20%, transparent 85%);
@@ -297,119 +277,145 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.child-glass:hover .pixel-overlay {
+.contact-glass:hover .pixel-card-overlay {
   opacity: 0.6;
 }
 
-/* Content */
-.child-content {
-  position: relative;
-  z-index: 2;
-  padding: 2rem 2.5rem;
+.contact-content {
+  padding: 2rem;
   color: #fff;
-  height: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.content-header {
+  gap: 1rem;
+  align-items: center;
   text-align: center;
+  z-index: 2;
 }
 
-.content-header h3 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem;
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.mail-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4ade80;
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.15);
+  margin-bottom: 0.25rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.8rem;
   background: linear-gradient(135deg, #fff, #86efac);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.content-header p {
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 auto;
-  max-width: 580px;
+.subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1.25rem 0;
+.email-btn {
+  display: inline-block;
+  padding: 0.65rem 1.2rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 50px;
+  color: #86efac;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  word-break: break-all;
 }
 
-.stat-item {
-  text-align: center;
+.email-btn:hover {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(74, 222, 128, 0.55);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.2);
 }
 
-.stat-number {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #fff, #4ade80);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0.25rem 0;
 }
 
-.stat-label {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.categories {
+.social-links {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  align-items: center;
 }
 
-.cat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
-  flex: 1;
-}
-
-.cat-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: rgba(74, 222, 128, 0.08);
-  border: 1px solid rgba(74, 222, 128, 0.18);
+.social-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4ade80;
-  flex-shrink: 0;
-  margin-top: 1px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.25s ease;
+  text-decoration: none;
 }
 
-.cat-text {
+.social-link:hover {
+  color: #fff;
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.3);
+  transform: scale(1.1);
+}
+
+.availability {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.cat-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.cat-stack {
-  font-size: 0.72rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.4);
-  line-height: 1.5;
+  margin: 0;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>

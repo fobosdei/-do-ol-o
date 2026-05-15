@@ -8,10 +8,10 @@ import GradualBlur from '../components/effects/GradualBlur.vue'
     <slot />
     
     <!-- Blur border only on bottom with distortion -->
-    <GradualBlur 
-      position="bottom" 
-      :strength="3" 
-      height="4rem" 
+    <GradualBlur
+      position="bottom"
+      :strength="1.2"
+      height="3rem"
       target="page"
       :z-index="9999"
       curve="ease-out"

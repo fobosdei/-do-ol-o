@@ -25,7 +25,7 @@ const isViolet = computed(() => props.theme === 'violet')
       <!-- Labels de ambos lados -->
       <span class="track-label label--violet" :class="{ active: isViolet }">
         <Sparkles :size="13" :stroke-width="2" />
-        Violeta
+        Bosque
       </span>
 
       <span class="track-label label--navy" :class="{ active: !isViolet }">
@@ -72,10 +72,10 @@ const isViolet = computed(() => props.theme === 'violet')
 
 /* Borde con glow según tema */
 .wrapper--violet {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(109, 40, 217, 0.3));
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.5), rgba(22, 163, 74, 0.3));
   box-shadow:
-    0 0 0 1px rgba(167, 139, 250, 0.3),
-    0 4px 20px rgba(139, 92, 246, 0.25);
+    0 0 0 1px rgba(134, 239, 172, 0.3),
+    0 4px 20px rgba(34, 197, 94, 0.25);
 }
 
 .wrapper--navy {
@@ -127,7 +127,7 @@ const isViolet = computed(() => props.theme === 'violet')
 
 .label--violet {
   left: 12px;
-  color: #a78bfa;
+  color: #86efac;
 }
 
 .label--navy {
@@ -160,10 +160,10 @@ const isViolet = computed(() => props.theme === 'violet')
 /* Posición IZQUIERDA = Violeta */
 .thumb--violet {
   left: 4px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
   box-shadow:
-    0 2px 12px rgba(139, 92, 246, 0.6),
-    0 0 0 1px rgba(167, 139, 250, 0.3),
+    0 2px 12px rgba(34, 197, 94, 0.6),
+    0 0 0 1px rgba(134, 239, 172, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 import LiquidGlass from '../interfaces/liquidglass.vue'
 import { useUIState } from '../utils/useUIState'
 
-const { toggleAbout } = useUIState()
+const { toggleAbout, toggleProjects, toggleContact, closeAll, isAboutOpen, isProjectsOpen, isContactOpen } = useUIState()
 
 const navItems = [
   { label: 'Inicio', href: '#' },
@@ -15,6 +15,13 @@ const navItems = [
 ]
 
 const activeIndex = ref(0)
+
+watch([isAboutOpen, isProjectsOpen, isContactOpen], ([about, projects, contact]) => {
+  if (!about && !projects && !contact) activeIndex.value = 0
+  else if (about) activeIndex.value = 1
+  else if (projects) activeIndex.value = 2
+  else if (contact) activeIndex.value = 4
+})
 const isScrolled = ref(false)
 
 const handleScroll = () => {
@@ -55,6 +62,9 @@ onBeforeUnmount(() => {
           @click.prevent="() => {
             activeIndex = index
             if (item.label === 'Sobre mí') toggleAbout()
+            else if (item.label === 'Proyectos') toggleProjects()
+            else if (item.label === 'Contacto') toggleContact()
+            else closeAll()
           }"
         >
           {{ item.label }}
