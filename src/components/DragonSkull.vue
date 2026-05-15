@@ -3,7 +3,6 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useCursorTracking } from './utils/useCursorTracking'
 import { useTheme } from './utils/useTheme'
 import { useUIState } from './utils/useUIState'
 
@@ -28,8 +27,15 @@ let rimLight: THREE.DirectionalLight
 let pointLight: THREE.PointLight
 
 const { themeColors } = useTheme()
+const { isAboutOpen } = useUIState()
 
-const { x: cursorX, y: cursorY, width: windowWidth, height: windowHeight } = useCursorTracking()
+watch(isAboutOpen, (open) => {
+  if (open) {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId)
+  } else {
+    animate()
+  }
+})
 
 function init() {
   if (!containerRef.value) return
@@ -43,7 +49,7 @@ function init() {
 
   // Camera
   camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
-  camera.position.set(0, 100, 300)
+  camera.position.set(0, 100, 100)
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -52,7 +58,7 @@ function init() {
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.2
+  renderer.toneMappingExposure = 0.85
   container.appendChild(renderer.domElement)
 
   // Controls
@@ -60,18 +66,18 @@ function init() {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
   controls.enablePan = false
-  controls.enableZoom = false // Disabled zoom on scroll
+  controls.enableZoom = false
   controls.minDistance = 50
   controls.maxDistance = 800
   controls.autoRotate = true
-  controls.autoRotateSpeed = 0.5 // Slower auto-rotate
+  controls.autoRotateSpeed = 0.5
   controls.target.set(0, 50, 0)
 
   // Lights — synced with theme
-  ambientLight = new THREE.AmbientLight(themeColors.value.top, 0.6)
+  ambientLight = new THREE.AmbientLight(themeColors.value.top, 0.3)
   scene.add(ambientLight)
 
-  const dirLight = new THREE.DirectionalLight(0xccccff, 1.5)
+  const dirLight = new THREE.DirectionalLight(0x8888aa, 0.85)
   dirLight.position.set(200, 300, 200)
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
@@ -84,16 +90,16 @@ function init() {
   dirLight.shadow.camera.bottom = -500
   scene.add(dirLight)
 
-  fillLight = new THREE.DirectionalLight(themeColors.value.top, 0.7)
+  fillLight = new THREE.DirectionalLight(themeColors.value.top, 0.3)
   fillLight.position.set(-200, 100, -200)
   scene.add(fillLight)
 
-  rimLight = new THREE.DirectionalLight(themeColors.value.bottom, 0.5)
+  rimLight = new THREE.DirectionalLight(themeColors.value.bottom, 0.6)
   rimLight.position.set(0, -100, -300)
   scene.add(rimLight)
 
-  pointLight = new THREE.PointLight(themeColors.value.top, 0.8, 500)
-  pointLight.position.set(0, 80, 100)
+  pointLight = new THREE.PointLight(themeColors.value.top, 0.2, 500)
+  pointLight.position.set(0, 80, 120)
   scene.add(pointLight)
 
   // Clock
@@ -104,64 +110,22 @@ function init() {
 
   // Handle resize
   window.addEventListener('resize', onResize)
-  
+
   // Handle scroll for rotation
   window.addEventListener('scroll', onScroll)
 }
 
-const { isAboutOpen } = useUIState()
-
-watch(isAboutOpen, (open) => {
-  if (open) {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId)
-  } else {
-    animate()
-  }
-})
-
 function loadModel() {
   const loader = new FBXLoader()
-// ... (rest of the file remains the same, I will use a smaller chunk to be safe)
-
-  // Load textures
-  const textureLoader = new THREE.TextureLoader()
-  const basePath = '/dragon-skull-2/textures/'
-
-  const diffuseMap = textureLoader.load(basePath + 'texture_pbr_20250901.png')
-  const normalMap = textureLoader.load(basePath + 'texture_pbr_20250901_normal.png')
-  const roughnessMap = textureLoader.load(basePath + 'texture_pbr_20250901_roughness.png')
-  const metalnessMap = textureLoader.load(basePath + 'texture_pbr_20250901_metallic.png')
-
-  // Set texture properties
-  ;[diffuseMap, normalMap, roughnessMap, metalnessMap].forEach((tex) => {
-    tex.colorSpace = THREE.SRGBColorSpace
-    tex.wrapS = THREE.RepeatWrapping
-    tex.wrapT = THREE.RepeatWrapping
-  })
-  // Normal map should be linear
-  normalMap.colorSpace = THREE.LinearSRGBColorSpace
-  roughnessMap.colorSpace = THREE.LinearSRGBColorSpace
-  metalnessMap.colorSpace = THREE.LinearSRGBColorSpace
 
   loader.load(
-    '/dragon-skull-2/source/dragon-skull-2.fbx',
+    '/alien-fish-animated/source/alien-fish-animated.fbx',
     (object) => {
-      // Apply PBR materials
       object.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
           const mesh = child as THREE.Mesh
           mesh.castShadow = true
           mesh.receiveShadow = true
-
-          const pbrMaterial = new THREE.MeshStandardMaterial({
-            map: diffuseMap,
-            normalMap: normalMap,
-            roughnessMap: roughnessMap,
-            metalnessMap: metalnessMap,
-            roughness: 0.7,
-            metalness: 0.3,
-          })
-          mesh.material = pbrMaterial
         }
       })
 
@@ -170,12 +134,14 @@ function loadModel() {
       const center = box.getCenter(new THREE.Vector3())
       const size = box.getSize(new THREE.Vector3())
       const maxDim = Math.max(size.x, size.y, size.z)
-      const scale = 150 / maxDim
+      const scale = 520 / maxDim
       object.scale.setScalar(scale)
       object.position.sub(center.multiplyScalar(scale))
       object.position.y += 60
-      
+      object.position.x -= 50
+
       model = object
+      object.rotation.y = Math.PI / 4
       scene.add(object)
 
       // Setup animations if available
@@ -183,14 +149,16 @@ function loadModel() {
         mixer = new THREE.AnimationMixer(object)
         object.animations.forEach((clip) => {
           const action = mixer!.clipAction(clip)
+          action.setLoop(THREE.LoopPingPong, Infinity)
+          action.clampWhenFinished = false
+          action.fadeIn(1.5)
           action.play()
         })
       }
 
       // Adjust camera to fit model
-      // ZOOM: cambia el último número para ajustar el zoom inicial (más bajo = más cerca)
-      camera.position.set(0, size.y * scale * 0.5, maxDim * scale * 1.7)
-      controls.target.set(0, size.y * scale * 0.3, 0)
+      camera.position.set(0, size.y * scale * 0.4, maxDim * scale * 0.8)
+      controls.target.set(0, size.y * scale * 0.15, 0)
       controls.update()
 
       loading.value = false
@@ -211,18 +179,13 @@ function loadModel() {
 // Handle scroll based rotation
 function onScroll() {
   if (!scene) return
-
-  // Calculate rotation based on scroll percentage
   const scrollY = window.scrollY
   const maxScroll = document.body.scrollHeight - window.innerHeight
-  // Guard against divide by zero if page is not scrollable
   const scrollPercent = maxScroll > 0 ? scrollY / maxScroll : 0
-
-  // Rotate the entire scene or specific object group
-  // Completes 2 full rotations over the page length
-  const targetRotation = scrollPercent * Math.PI * 4 
-
-  scene.rotation.y = targetRotation
+  // Suave: solo media vuelta (180°) en toda la página
+  const targetRotation = scrollPercent * Math.PI * 0.5
+  // Lerp suave hacia el target
+  scene.rotation.y += (targetRotation - scene.rotation.y) * 0.08
 }
 
 function onResize() {
@@ -237,25 +200,8 @@ function onResize() {
 function animate() {
   animationFrameId = requestAnimationFrame(animate)
   const delta = clock.getDelta()
-
   if (mixer) {
     mixer.update(delta)
-  }
-
-  if (model) {
-    const ndcX = (cursorX.value / windowWidth.value) * 2 - 1
-    const ndcY = -(cursorY.value / windowHeight.value) * 2 + 1
-
-    // Target rotation based on cursor position
-    const targetX = -ndcY * 0.5 
-    const targetY = ndcX * 0.5 
-
-    // Smoothly interpolate current rotation to target
-    // Note: We're adding to the base rotation if needed, but since model.rotation is local
-    // and distinct from scene/controls, this works as a "look at" offset.
-    const ease = 0.1
-    model.rotation.x += (targetX - model.rotation.x) * ease
-    model.rotation.y += (targetY - model.rotation.y) * ease
   }
 
   controls.update()
@@ -267,12 +213,13 @@ onMounted(() => {
   animate()
 })
 
-// Watch for theme changes and update lights
+// Watch for theme changes and update lights + model color
 watch(themeColors, (newColors) => {
   if (ambientLight) ambientLight.color.set(newColors.top)
   if (fillLight) fillLight.color.set(newColors.top)
   if (pointLight) pointLight.color.set(newColors.top)
   if (rimLight) rimLight.color.set(newColors.bottom)
+
 }, { deep: true })
 
 onBeforeUnmount(() => {
@@ -295,7 +242,7 @@ onBeforeUnmount(() => {
     <div v-if="loading" class="loading-overlay">
       <div class="loading-content">
         <div class="spinner"></div>
-        <p class="loading-text">Cargando Dragon Skull...</p>
+        <p class="loading-text">Cargando Alien Fish...</p>
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: loadProgress + '%' }"></div>
         </div>
@@ -394,5 +341,4 @@ onBeforeUnmount(() => {
   font-size: 1.2rem;
   z-index: 10;
 }
-
 </style>

@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="profile-info">
-            <h2>Juan Manuel Crudo</h2>
+            <h2>Juan Manuel Fernández</h2>
             <span class="profile-title">Software Developer · Cali, Colombia</span>
           </div>
           <p>

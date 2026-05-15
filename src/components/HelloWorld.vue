@@ -4,14 +4,14 @@ import LiquidGlass from './interfaces/liquidglass.vue'
 
 defineProps<{ msg?: string }>()
 
-const { isAboutOpen } = useUIState()
+const { isAboutOpen, isContactOpen } = useUIState()
 </script>
 
 <template>
-  <div class="landing" :class="{ 'is-hidden': isAboutOpen }">
+  <div class="landing" :class="{ 'is-hidden': isAboutOpen || isContactOpen }">
     <section class="hero">
       <h1 class="hero-title">kafkha</h1>
-      <p class="hero-subtitle">entusiasta y progresista</p>
+      <p class="hero-subtitle">si yo vine al mundo a inspiriar a otros, como otros me ayudaron a inspirarme a mi. Entonces servi para algo en este mundo </p>
       <div class="hero-actions">
         <div class="btn-wrap btn-wrap--primary">
           <LiquidGlass
@@ -206,6 +206,16 @@ const { isAboutOpen } = useUIState()
 
 .btn-glass {
   cursor: pointer;
+}
+
+/* Reduce el borde blanco inset de los botones */
+.btn-wrap :deep(.glass-surface--svg) {
+  box-shadow:
+    0 0 1px 0.5px color-mix(in oklch, white, transparent 85%) inset,
+    0 0 4px 2px color-mix(in oklch, white, transparent 93%) inset,
+    0px 4px 16px rgba(17, 17, 26, 0.05),
+    0px 8px 24px rgba(17, 17, 26, 0.05),
+    0px 16px 56px rgba(17, 17, 26, 0.05) !important;
 }
 
 .btn-inner {

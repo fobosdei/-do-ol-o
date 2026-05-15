@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useUIState } from './utils/useUIState'
+import LiquidGlass from './interfaces/liquidglass.vue'
 
 const { isContactOpen, closeContact } = useUIState()
 
@@ -171,16 +172,29 @@ const socials = [
   <div class="contact-container" :class="{ 'is-open': isContactOpen }">
     <div
       ref="cardRef"
-      class="contact-glass glass-card"
+      class="contact-glass-wrapper"
       @mousemove="handleMouseTilt"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
       :style="{ transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})` }"
     >
-      <canvas ref="canvasRef" class="pixel-canvas"></canvas>
-      <div class="pixel-card-overlay"></div>
+      <LiquidGlass
+        :width="'100%'"
+        :height="'auto'"
+        :border-radius="30"
+        :border-width="0.2"
+        :opacity="0.15"
+        :blur="6"
+        :displace="0.5"
+        :distortion-scale="10"
+        mix-blend-mode="normal"
+        class="contact-glass-surface"
+      >
+        <div class="contact-glass-inner">
+          <canvas ref="canvasRef" class="pixel-canvas"></canvas>
+          <div class="pixel-card-overlay"></div>
 
-      <div class="contact-content">
+          <div class="contact-content">
         <button class="close-btn" @click.stop="closeContact">×</button>
 
         <div class="mail-icon">
@@ -217,7 +231,9 @@ const socials = [
           <span class="dot"></span>
           Disponible para proyectos freelance
         </p>
-      </div>
+          </div>
+        </div>
+      </LiquidGlass>
     </div>
   </div>
 </template>
@@ -243,20 +259,35 @@ const socials = [
   opacity: 1;
 }
 
-.contact-glass {
-  background: rgba(10, 10, 20, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+.contact-glass-wrapper {
   width: 100%;
   height: auto;
-  overflow: hidden;
   transform-style: preserve-3d;
   will-change: transform;
   transition: transform 0.1s ease-out;
+}
+
+.contact-glass-surface {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.contact-glass-inner {
   position: relative;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  border-radius: 30px;
+}
+
+.contact-glass-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  background: rgba(5, 5, 10, 0.55);
+  border-radius: inherit;
+  z-index: 0;
 }
 
 .pixel-canvas {
